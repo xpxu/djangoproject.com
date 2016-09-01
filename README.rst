@@ -37,8 +37,19 @@ To run locally, do the usual:
    to your ~/.bashrc (or ~/.zshrc if you're using zsh) file and then run
    `source ~/.bashrc` (or `source ~/.zshrc`) to load the changes.
 
-#. Create databases::
+#. install postgresql database
 
+    初次安装后，默认生成一个名为postgres的数据库和一个名为postgres的数据库用户。这里需要注意的是，同时还生成了一个名为postgres的Linux系统用户。使用postgres用户，来生成其他用户和新数据库
+    
+    apt-get install postgresql-client　(客户端)
+    apt-get install postgresql
+    apt-get install pgadmin3　(图形界面客户端)
+
+
+#. Create databases
+
+    service postgresql start
+    (sudo) su - postgres  以postgres身份运行
     createuser -d djangoproject
     createdb -O djangoproject djangoproject
     createuser -d code.djangoproject
