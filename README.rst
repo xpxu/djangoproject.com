@@ -9,11 +9,12 @@ djangoproject.com source code
 
 To run locally, do the usual:
 
-#. Create a virtualenv
+#. Create a Python 3.4 virtualenv
 
 #. Install dependencies::
 
     pip install -r requirements/dev.txt
+    npm install
 
    Alternatively use the make task::
 
@@ -22,34 +23,39 @@ To run locally, do the usual:
 #. Make a directory to store the project's data (MEDIA_ROOT, DOC_BUILDS_ROOT,
    etc.). We'll use ~/.djangoproject for example purposes.
 
-   Create a 'secrets.json' file in a folder named 'conf' in that directory,
+   Create a 'secrets.json' file in a directory named 'conf' in that directory,
    containing something like::
 
     { "secret_key": "xyz",
-      "superfeedr_creds": ["any@email.com", "some_string"] }
+      "superfeedr_creds": ["any@email.com", "some_string"],
+      "db_host": "localhost",
+      "db_password": "secret",
+      "trac_db_host": "localhost",
+      "trac_db_password": "secret" }
 
    Add `export DJANGOPROJECT_DATA_DIR=~/.djangoproject` (without the backticks)
-   to your ~/.bashrc file and then run `source ~/.bashrc` to load the changes.
-
-#. install postgresql database
-    初次安装后，默认生成一个名为postgres的数据库和一个名为postgres的数据库用户。这里需要注意的是，同时还生成了一个名为postgres的Linux系统用户。使用postgres用户，来生成其他用户和新数据库
-    
-    apt-get install postgresql-client　(客户端)
-    
-    apt-get install postgresql
-    
-    apt-get install pgadmin3　(图形界面客户端)
+   to your ~/.bashrc (or ~/.zshrc if you're using zsh) file and then run
+   `source ~/.bashrc` (or `source ~/.zshrc`) to load the changes.
 
 #. Create databases::
 
-    service postgresql start
-    
-    su - postgres  以postgres身份运行
-    
     createuser -d djangoproject
     createdb -O djangoproject djangoproject
     createuser -d code.djangoproject
     createdb -O code.djangoproject code.djangoproject
+
+#. Setting up database access
+
+   If you are using the default postgres configuration, chances are you will
+   have to give a password for the newly created users in order to be able to
+   use them for Django::
+
+     psql
+     ALTER USER djangoproject WITH PASSWORD 'secret';
+     ALTER USER "code.djangoproject" WITH PASSWORD 'secret';
+     \d
+
+   (Use the same passwords as the ones you've used in your `secrets.json` file)
 
 #. Create tables::
 
@@ -87,6 +93,11 @@ To run locally, do the usual:
    both require admin privileges, just like you'd need when editing
    ``/etc/hosts`` with your favorite editor.
 
+   If you don't have admin rights but have an internet connection, you can use a
+   service like `xip.io <http://xip.io>`_. In that case you'll also have to
+   update `ALLOWED_HOSTS` in `djangoproject/settings/dev.py` as well as the
+   content of the `django_site` table in your database.
+
 .. _`Hosts.prefpane`: https://github.com/specialunderwear/Hosts.prefpane
 .. _`built-in network admin`: https://help.ubuntu.com/community/NetworkAdmin
 
@@ -115,7 +126,7 @@ Our test results can be found here:
     https://travis-ci.org/django/djangoproject.com
 
 For local development don't hesitate to install
-`tox <http://tox.readthedocs.org/>`_ to run the website's test suite.
+`tox <https://tox.readthedocs.io/>`_ to run the website's test suite.
 
 Then in the root directory (next to the ``manage.py`` file) run::
 
@@ -123,7 +134,7 @@ Then in the root directory (next to the ``manage.py`` file) run::
 
 Behind the scenes this will run the usual ``./manage.py test`` management
 command with a preset list of apps that we want to test as well as
-`flake8 <http://flake8.readthedocs.org/>`_ for code quality checks. We
+`flake8 <https://flake8.readthedocs.io/>`_ for code quality checks. We
 collect test coverage data as part of that tox run, to show the result
 simply run::
 
@@ -220,12 +231,23 @@ Check out the ``Procfile`` file for all the process names.
 JavaScript libraries
 --------------------
 
-This project uses `Bower <http://bower.io/>`_ for managing JS library
-dependencies. See its documentation for how to use it. Here's the gist:
+This project uses `Bower <http://bower.io/>`_ to manage JavaScript libraries.
 
-To update any of the dependencies, edit the ``bower.json`` file accordingly
-and then run ``bower install`` to download the appropriate files to the
-static directory. Commit the downloaded files to git (vendoring).
+At any time, you can run it to install a new library (e.g., ``jquery-ui``)::
+
+    npm run bower install jquery-ui --save
+
+or check if there are newer versions of the libraries that we use::
+
+    npm run bower ls
+
+If you need to update an existing library, the easiest way is to change the
+version requirement in ``bower.json`` and then to run
+``npm run bower install`` again.
+
+We commit the libraries to the repository, so if you add, update, or remove a
+library from ``bower.json``, you will need to commit the changes in
+``djangoproject/static`` too.
 
 Documentation search
 --------------------
